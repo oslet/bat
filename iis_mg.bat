@@ -14,8 +14,9 @@ rem echo %ip%
 for /f "tokens=1" %%i in (%filename%) do %windir%\system32\iisweb /stop %%i
 
 
-:: svn checkout svn://192.168.1.2/svn/update1 c:\website
-:: cd /d c:\website && svn update --force
+xcopy /y /e /v 
 
 for /f "tokens=1" %%i in (%filename%) do %windir%\system32\iisweb /start %%i
 
+cscript.exe %SystemDrive%\inetpub\adminscripts\adsutil.vbs enum_all /p w3svc/apppools | findstr app* > c:\app.txt
+for /f "tokens=3* delims=[,],/" %%i in (c:\app.txt) do cscript.exe %windir%\system32\iisapp.vbs /a %%i /r
