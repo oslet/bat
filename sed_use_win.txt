@@ -1,0 +1,3 @@
+sed /^a111/{x;/^$/s/^/asdf/p;x} test.txt      //区配后在此之前加入字符，并逐次成倍复制
+sed -s /a111111/a\asdf test.txt      //a111111行之后增加asdf
+sed -s 1,/^a111111/a\asdf test.txt       //以a111111行开头的行第一个区配前追加
