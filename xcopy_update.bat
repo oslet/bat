@@ -1,9 +1,9 @@
-ï»¿@echo off
+@echo off
 
-rem æ‰¹å¤„ç†æ›´æ–°ä¹‹å‰ï¼Œå¤‡ä»½æŒ‡å®šç›®å½•æ–‡ä»¶ï¼Œç„¶åŽä»Žå…±äº«è·¯å¾„å¤åˆ¶æ–‡ä»¶åˆ°æŒ‡å®šç›®å½•
-rem ç¨‹åºè°ƒç”¨éœ€ä¸‰ä¸ªå‚æ•°,ä¸€æ˜¯æœ¬åœ°ç¨‹åºè·¯å¾„,äºŒæ˜¯æ›´æ–°çš„æœåŠ¡åç§°,ä¸‰æ˜¯å…±äº«å¤åˆ¶çš„è·¯å¾„
-rem ç¬¬äºŒä¸ªå‚æ•°ä¸Žç«™ç‚¹åç§°ç›¸åŒæˆ–è€…åŒ…å«éƒ¨ä»½å­—ç¬¦ä¸²ï¼Œä»¥ç”¨äºŽæ›´æ–°æ—¶å¯åœç«™ç‚¹
-rem exclide.listæ–‡ä»¶ç”¨äºŽæŽ’é™¤ä¸ä½œå¤‡ä»½çš„æ–‡ä»¶åˆ—è¡¨
+rem Åú´¦Àí¸üÐÂÖ®Ç°£¬±¸·ÝÖ¸¶¨Ä¿Â¼ÎÄ¼þ£¬È»ºó´Ó¹²ÏíÂ·¾¶¸´ÖÆÎÄ¼þµ½Ö¸¶¨Ä¿Â¼
+rem ³ÌÐòµ÷ÓÃÐèÈý¸ö²ÎÊý,Ò»ÊÇ±¾µØ³ÌÐòÂ·¾¶,¶þÊÇ¸üÐÂµÄ·þÎñÃû³Æ,ÈýÊÇ¹²Ïí¸´ÖÆµÄÂ·¾¶
+rem µÚ¶þ¸ö²ÎÊýÓëÕ¾µãÃû³ÆÏàÍ¬»òÕß°üº¬²¿·Ý×Ö·û´®£¬ÒÔÓÃÓÚ¸üÐÂÊ±ÆôÍ£Õ¾µã
+rem exclude.listÎÄ¼þÓÃÓÚÅÅ³ý²»×÷±¸·ÝµÄÎÄ¼þÁÐ±í
 
 setlocal enabledelayedexpansion
 
@@ -13,6 +13,8 @@ set updateservice=%2
 set shareserver=%3
 set webname=%windir%\temp\%2%.txt
 set poolname=%windir%\temp\pool%random%.txt
+set checksum=%windir%\temp\checksum
+set sumserver=\\192.168.122.38\sumserver\%2
 
 set time_hh=%time:~0,2%
 if /i %time_hh% LSS 10 (set time_hh=0%time:~1,1%)
@@ -26,12 +28,12 @@ if "%website%"=="" (
 )
 
 if "%updateservice"=="" (
-  echo ç¼ºå°‘å‚æ•°
+  echo È±ÉÙ²ÎÊý
   exit
 )
 
 if "%shareserver%"=="" (
-  echo ç¼ºå°‘å‚æ•°
+  echo È±ÉÙ²ÎÊý
   exit
 )
 
@@ -87,12 +89,18 @@ xcopy /y /v %shareserver%\exclude.list %SystemDrive%\tools\bin
 for /f "tokens=1" %%i in (%webname%) do %windir%\system32\iisweb /stop %%i
 
 xcopy /y /v /exclude:%SystemDriver%\tools\bin\exclude.list %website% %backupdir%
-xcopy /y /e /v %shareserver%\%updateservice% %website%
+xcopy /y /e /v /exclude:%SystemDriver%\tools\bin\exclude.list %shareserver%\%updateservice% %website%
 
 
-cscript.exe  %SystemDrive%\tools\bin\getapppools.vbs > %poolname%
-for /F "skip=3 tokens=3* delims=/" %%i in (%poolname%) do cscript.exe %windir%\system32\iisapp.vbs /a %%i /r
+cscript.exe  %SystemDrive%\tools\bin\getapppools.vbs |findstr /i %2 > %poolname%
+for /F "tokens=3* delims=/" %%i in (%poolname%) do cscript.exe %windir%\system32\iisapp.vbs /a %%i /r
 
 for /f "tokens=1" %%i in (%webname%) do %windir%\system32\iisweb /start %%i
 
+cd %1
+md5sum -c zfile.md5 > %checksum%_%ipaddr%.txt
+xcopy /y /v %checksum%_%ipaddr%.txt %sumserver%
+
 endlocal
+
+exit

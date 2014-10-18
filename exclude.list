@@ -1,0 +1,6 @@
+.exe
+.sh
+.tmp
+.log
+/log/
+/aspnet_client/
